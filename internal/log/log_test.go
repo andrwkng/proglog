@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	api "github.com/andrwkng/prolog/api/v1"
+	api "github.com/andrwkng/proglog/api/v1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -47,18 +47,18 @@ func testAppendRead(t *testing.T, log *Log) {
 func testOutOfRangeErr(t *testing.T, log *Log) {
 	read, err := log.Read(1)
 	require.Nil(t, read)
-	apiErr := err.(api.ErrOffsetOutOfRange)
-	require.Equal(t, uint64(1), apiErr.Offset)
+	require.Error(t, err)
 }
 
 // testInitExisting tests that when we create a log, the log bootstraps
 // itself from the data stored by prior log instances
 func testInitExisting(t *testing.T, o *Log) {
-	append := &api.Record{
+	record := &api.Record{
 		Value: []byte("hello world"),
 	}
+
 	for i := 0; i < 3; i++ {
-		_, err := o.Append(append)
+		_, err := o.Append(record)
 		require.NoError(t, err)
 	}
 	require.NoError(t, o.Close())

@@ -1,12 +1,13 @@
 package log
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"testing"
 
-	api "github.com/andrwkng/prolog/api/v1"
+	api "github.com/andrwkng/proglog/api/v1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -39,6 +40,7 @@ func TestSegment(t *testing.T) {
 	require.NoError(t, err)
 	// maxed store
 	require.True(t, s.IsMaxed())
+	fmt.Println(s)
 	err = s.Remove()
 	require.NoError(t, err)
 	s, err = newSegment(dir, 16, c)

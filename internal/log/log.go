@@ -9,17 +9,17 @@ import (
 	"strings"
 	"sync"
 
-	api "github.com/andrwkng/prolog/api/v1"
+	api "github.com/andrwkng/proglog/api/v1"
 )
 
 // Log consisits of a list of segments
 type Log struct {
 	mu sync.RWMutex
 
-	Dir    string `location where segments are stored`
+	Dir    string // location where segments are stored
 	Config Config
 
-	activeSegment *segment `pointer to the active segment to append writes to`
+	activeSegment *segment // pointer to the active segment to append writes to`
 	segments      []*segment
 }
 
@@ -40,16 +40,18 @@ func NewLog(dir string, c Config) (*Log, error) {
 	return l, l.setup()
 }
 
-// Append appends a record to the log. We append the record to the
-// active segment. Afterward, if the segment is at its max size (per the max size
-// configs), then we make a new active segment.
+// Append appends a record to the log. We append the record to the active segment.
+// Afterward, if the segment is at its max size (per the max size configs),
+// then we make a new active segment.
 func (l *Log) Append(record *api.Record) (uint64, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
+
 	off, err := l.activeSegment.Append(record)
 	if err != nil {
 		return 0, err
 	}
+
 	if l.activeSegment.IsMaxed() {
 		err = l.newSegment(off + 1)
 	}
@@ -121,11 +123,9 @@ func (l *Log) Truncate(lowest uint64) error {
 	return nil
 }
 
-// setup log instance:
 // setup is responsible for setting the log up for the segments that
 // already exist on disk or, if the log is new and has no existing segments, for
 // bootstrapping the initial segment
-
 func (l *Log) setup() error {
 	files, err := ioutil.ReadDir(l.Dir)
 	if err != nil {

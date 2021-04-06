@@ -5,12 +5,11 @@ import (
 	"os"
 	"path"
 
-	api "github.com/andrwkng/prolog/api/v1"
+	api "github.com/andrwkng/proglog/api/v1"
 	"google.golang.org/protobuf/proto"
 )
 
 // segment ties store and index together
-
 type segment struct {
 	store                  *store
 	index                  *index
@@ -18,7 +17,7 @@ type segment struct {
 	config                 Config
 }
 
-// newSegment() is called by the log when it needs to add a new segment
+// newSegment is called by the log when it needs to add a new segment
 func newSegment(dir string, baseOffset uint64, c Config) (*segment, error) {
 	s := &segment{
 		baseOffset: baseOffset,
@@ -98,23 +97,30 @@ func (s *segment) Append(record *api.Record) (offset uint64, err error) {
 
 // Remove closes the segment and removes the index and store files.
 func (s *segment) Remove() error {
-	if err := s.Close(); err != nil {
+	err := s.Close()
+	if err != nil {
 		return err
 	}
-	if err := os.Remove(s.index.Name()); err != nil {
+
+	err = os.Remove(s.index.Name())
+	if err != nil {
 		return err
 	}
-	if err := os.Remove(s.store.Name()); err != nil {
+
+	err = os.Remove(s.store.Name())
+	if err != nil {
 		return err
 	}
 	return nil
 }
 
 func (s *segment) Close() error {
-	if err := s.index.Close(); err != nil {
+	err := s.index.Close()
+	if err != nil {
 		return err
 	}
-	if err := s.store.Close(); err != nil {
+	err = s.store.Close()
+	if err != nil {
 		return err
 	}
 	return nil

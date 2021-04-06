@@ -3,7 +3,6 @@ package log
 import (
 	"bufio"
 	"encoding/binary"
-	"fmt"
 	"os"
 	"sync"
 )
@@ -12,7 +11,7 @@ var enc = binary.BigEndian
 
 const lenWidth = 8
 
-// store represents file records are stored in
+// store represents a file records are stored in
 type store struct {
 	*os.File
 	mu   sync.Mutex
@@ -33,6 +32,7 @@ func newStore(f *os.File) (*store, error) {
 	}, nil
 }
 
+// Append persists the given bytes to the store
 func (s *store) Append(p []byte) (uint64, uint64, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -40,29 +40,37 @@ func (s *store) Append(p []byte) (uint64, uint64, error) {
 	if err != nil {
 		return 0, 0, err
 	}
+
 	pos := s.size
+	// 	write to the buffered writer instead of directly to the file to reduce the
+	// number of system calls and improve performance
 	w, err := s.buf.Write(p)
 	if err != nil {
 		return 0, 0, err
 	}
+
 	w += lenWidth
 	s.size += uint64(w)
-	fmt.Println("BUFF:", s.buf)
 	return uint64(w), pos, nil
 }
 
+// Read returns the record stored at the given position
 func (s *store) Read(pos uint64) ([]byte, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	// flush the writer buffer in case we’re about to try to read a record that the buffer
+	// hasn’t flushed to disk yet
 	err := s.buf.Flush()
 	if err != nil {
 		return nil, err
 	}
+
 	size := make([]byte, lenWidth)
 	_, err = s.File.ReadAt(size, int64(pos))
 	if err != nil {
 		return nil, err
 	}
+
 	b := make([]byte, enc.Uint64(size))
 	_, err = s.File.ReadAt(b, int64(pos+lenWidth))
 	if err != nil {
@@ -71,6 +79,7 @@ func (s *store) Read(pos uint64) ([]byte, error) {
 	return b, nil
 }
 
+// Close persists any buffered data before closing the file.
 func (s *store) Close() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
