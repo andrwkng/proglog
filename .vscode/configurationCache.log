@@ -1,0 +1,1 @@
+{"buildTargets":[".PHONY","/.proglog//model.conf","/.proglog//policy.csv","compile","gencert","init","test"],"launchTargets":[],"customConfigurationProvider":{"workspaceBrowse":{"browsePath":[],"compilerArgs":[]},"fileIndex":[]}}
